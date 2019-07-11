@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="4.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.technus.xyzrgbled.javafx.colorChooser.ColorChooserController">
+   <children>
+      <fx:include fx:id="colorDisplay" source="../colorDisplay/colorDisplay.fxml" />
+      <VBox spacing="4.0">
+         <children>
+            <Spinner fx:id="mult" editable="true" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+            <ColorPicker fx:id="picker" editable="true" maxWidth="1.7976931348623157E308" HBox.hgrow="SOMETIMES" />
+         </children>
+         <padding>
+            <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+         </padding>
+      </VBox>
+   </children>
+</VBox>

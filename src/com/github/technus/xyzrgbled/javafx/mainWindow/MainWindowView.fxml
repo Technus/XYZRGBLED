@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.technus.xyzrgbled.javafx.mainWindow.MainWindowController">
+   <center>
+      <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="300.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+         <content>
+            <HBox fx:id="chartHBox" prefHeight="100.0" prefWidth="200.0" />
+         </content>
+      </ScrollPane>
+   </center>
+   <bottom>
+      <HBox spacing="8.0" BorderPane.alignment="CENTER">
+         <children>
+            <VBox spacing="8.0">
+               <children>
+                  <Label>Color picker:</Label>
+                  <fx:include fx:id="colorChooser" source="../colorChooser/colorChooser.fxml" />
+                  <Label fx:id="temperatureLabel" text="Temperature" />
+               </children>
+            </VBox>
+            <VBox spacing="8.0">
+               <children>
+                  <Label>Color reading:</Label>
+                  <fx:include fx:id="colorReading" source="../colorReading/colorReading.fxml" />
+               </children>
+            </VBox>
+            <VBox spacing="8.0">
+               <children>
+                  <Label text="Color error:">Color reading:</Label>
+                  <fx:include fx:id="colorError" source="../colorError/colorError.fxml" />
+                  <Label text="PWM settings:" />
+                  <VBox spacing="4.0">
+                     <fx:include fx:id="pwmSettingR" source="../pwmSetting/pwmSetting.fxml" />
+                     <fx:include fx:id="pwmSettingG" source="../pwmSetting/pwmSetting.fxml" />
+                     <fx:include fx:id="pwmSettingB" source="../pwmSetting/pwmSetting.fxml" />
+                     <fx:include fx:id="pwmSettingW" source="../pwmSetting/pwmSetting.fxml" />
+                  </VBox>
+               </children>
+            </VBox>
+            <VBox spacing="8.0">
+               <children>
+                  <Label text="Sensor Configuration:" />
+                  <VBox spacing="4.0">
+                     <children>
+                        <CheckBox fx:id="measuringCheck" alignment="CENTER" mnemonicParsing="false" text="Measuring" />
+                        <ChoiceBox fx:id="gainChoice" maxWidth="1.7976931348623157E308" VBox.vgrow="SOMETIMES" />
+                        <ChoiceBox fx:id="timeChoice" maxWidth="1.7976931348623157E308" VBox.vgrow="SOMETIMES" />
+                        <ChoiceBox fx:id="dividerChoice" maxWidth="1.7976931348623157E308" VBox.vgrow="SOMETIMES" />
+                        <ChoiceBox fx:id="clockChoice" maxWidth="1.7976931348623157E308" VBox.vgrow="SOMETIMES" />
+                     </children></VBox>
+                  <Label text="Control Configuration:" />
+                  <VBox spacing="4.0">
+                     <children>
+                        <CheckBox fx:id="regulatorsEnableChoice" alignment="CENTER" mnemonicParsing="false" text="Regulate Color" />
+                        <CheckBox fx:id="removeOffsetChoice" alignment="CENTER" mnemonicParsing="false" text="Remove Offset" />
+                        <CheckBox fx:id="inverseTransferChoice" alignment="CENTER" mnemonicParsing="false" text="Inverse Trasfer Gain" />
+                        <HBox spacing="4.0">
+                           <children>
+                              <Label alignment="CENTER" maxHeight="1.7976931348623157E308" minWidth="15.0" text="kP" />
+                              <Spinner fx:id="regulatorGainSpinner" editable="true" maxWidth="1.7976931348623157E308" />
+                           </children>
+                        </HBox>
+                        <HBox spacing="4.0">
+                           <children>
+                              <Label alignment="CENTER" maxHeight="1.7976931348623157E308" minWidth="15.0" text="tI" />
+                              <Spinner fx:id="regulatorIntegrationTimeSpinner" editable="true" maxWidth="1.7976931348623157E308" />
+                           </children>
+                        </HBox>
+                        <HBox spacing="4.0">
+                           <children>
+                              <Label alignment="CENTER" maxHeight="1.7976931348623157E308" minWidth="15.0" text="tD" />
+                              <Spinner fx:id="regulatorDifferentiationTimeSpinner" editable="true" maxWidth="1.7976931348623157E308" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+                  <Label text="Hardware Connection:" />
+                  <VBox spacing="4.0">
+                     <children>
+                        <ChoiceBox fx:id="serialChoice" maxWidth="1.7976931348623157E308" prefWidth="150.0" />
+                     </children></VBox>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </bottom>
+   <padding>
+      <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+   </padding>
+</BorderPane>

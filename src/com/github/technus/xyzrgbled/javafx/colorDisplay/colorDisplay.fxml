@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Rectangle?>
+
+<VBox spacing="4.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.technus.xyzrgbled.javafx.colorDisplay.ColorDisplayController">
+    <children>
+        <BorderPane>
+            <center>
+                <Rectangle fx:id="colorBox" arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0" stroke="BLACK" strokeType="INSIDE" width="200.0" BorderPane.alignment="CENTER" />
+            </center>
+        </BorderPane>
+        <HBox spacing="4.0">
+            <BorderPane>
+                <center>
+                    <StackPane BorderPane.alignment="CENTER">
+                        <children>
+                            <Circle fill="RED" radius="12.0" stroke="BLACK" strokeType="INSIDE" />
+                            <Label contentDisplay="CENTER" text="X" textFill="AQUA" />
+                        </children>
+                    </StackPane>
+                </center>
+            </BorderPane>
+            <TextField fx:id="ReadingTextFieldX" editable="false" maxWidth="1.7976931348623157E308" prefWidth="176.0" HBox.hgrow="ALWAYS" />
+        </HBox>
+        <HBox spacing="4.0">
+            <BorderPane>
+                <center>
+                    <StackPane BorderPane.alignment="CENTER">
+                        <children>
+                            <Circle fill="LIME" radius="12.0" stroke="BLACK" strokeType="INSIDE" />
+                            <Label contentDisplay="CENTER" text="Y" textFill="MAGENTA" />
+                        </children>
+                    </StackPane>
+                </center>
+            </BorderPane>
+            <TextField fx:id="ReadingTextFieldY" editable="false" maxWidth="1.7976931348623157E308" prefWidth="176.0" HBox.hgrow="ALWAYS" />
+        </HBox>
+        <HBox spacing="4.0">
+            <BorderPane>
+                <center>
+                    <StackPane BorderPane.alignment="CENTER">
+                        <children>
+                            <Circle fill="BLUE" radius="12.0" stroke="BLACK" strokeType="INSIDE" />
+                            <Label contentDisplay="CENTER" text="Z" textFill="YELLOW" />
+                        </children>
+                    </StackPane>
+                </center>
+            </BorderPane>
+            <TextField fx:id="ReadingTextFieldZ" editable="false" maxWidth="1.7976931348623157E308" prefWidth="176.0" HBox.hgrow="ALWAYS" />
+        </HBox>
+    </children>
+</VBox>
