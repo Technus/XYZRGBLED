@@ -44,6 +44,7 @@
                      <fx:include fx:id="pwmSettingG" source="../pwmSetting/pwmSetting.fxml" />
                      <fx:include fx:id="pwmSettingB" source="../pwmSetting/pwmSetting.fxml" />
                      <fx:include fx:id="pwmSettingW" source="../pwmSetting/pwmSetting.fxml" />
+                     <fx:include fx:id="pwmSettingM" source="../pwmSetting/pwmSetting.fxml" />
                   </VBox>
                </children>
             </VBox>

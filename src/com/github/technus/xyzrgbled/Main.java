@@ -1,8 +1,8 @@
 package com.github.technus.xyzrgbled;
 
 import com.github.technus.xyzrgbled.javafx.mainWindow.MainWindowController;
+import com.github.technus.xyzrgbled.model.hardware.*;
 import com.github.technus.xyzrgbled.model.software.Control;
-import com.github.technus.xyzrgbled.model.hardware.Hardware;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -17,10 +17,15 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        IHardwareCommunication.suppliers.add(SerialPortProperty::updatePorts);
+        IHardwareCommunication.suppliers.add(SSHPortProperty::generateConnection);
+        IHardwareCommunication.suppliers.add(ServerSocketPortProperty::generateConnection);
+        IHardwareCommunication.suppliers.add(SocketPortProperty::generateConnection);
+
         Locale.setDefault(Locale.US);
         primaryStage.setTitle("XYZ RGB LED");
-        Hardware hardware=new Hardware();
-        primaryStage.setScene(new Scene(MainWindowController.start(hardware,new Control(hardware))));
+        Hardware hardware=Hardware.createWithDrivers();
+        primaryStage.setScene(new Scene(MainWindowController.start(hardware,Control.getPIDzControl(hardware))));
         primaryStage.getScene().getStylesheets().add(Main.class.getResource("modena_dark.css").toExternalForm());
         primaryStage.setOnCloseRequest(event -> {
             Platform.exit();

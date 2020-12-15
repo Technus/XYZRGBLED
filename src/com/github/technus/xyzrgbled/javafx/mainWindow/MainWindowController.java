@@ -4,9 +4,10 @@ import com.github.technus.xyzrgbled.javafx.colorChooser.ColorChooserController;
 import com.github.technus.xyzrgbled.javafx.colorError.ColorErrorController;
 import com.github.technus.xyzrgbled.javafx.colorReading.ColorReadingController;
 import com.github.technus.xyzrgbled.javafx.pwmSetting.PwmSettingController;
+import com.github.technus.xyzrgbled.model.color.ColorLedXYZ;
 import com.github.technus.xyzrgbled.model.hardware.ColorSensor;
 import com.github.technus.xyzrgbled.model.hardware.Hardware;
-import com.github.technus.xyzrgbled.model.hardware.SerialPortProperty;
+import com.github.technus.xyzrgbled.model.hardware.IHardwareCommunication;
 import com.github.technus.xyzrgbled.model.software.Control;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.StringBinding;
@@ -22,11 +23,14 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
-import jssc.SerialPort;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 public class MainWindowController implements Initializable {
     @FXML private Label temperatureLabel;
@@ -58,12 +62,13 @@ public class MainWindowController implements Initializable {
     @FXML private PwmSettingController pwmSettingGController;
     @FXML private PwmSettingController pwmSettingBController;
     @FXML private PwmSettingController pwmSettingWController;
+    @FXML private PwmSettingController pwmSettingMController;
 
     @FXML private ChoiceBox<ColorSensor.IntegrationGain> gainChoice;
     @FXML private ChoiceBox<ColorSensor.IntegrationTime> timeChoice;
     @FXML private ChoiceBox<ColorSensor.MeasurementDivider> dividerChoice;
     @FXML private ChoiceBox<ColorSensor.InternalClockFrequency> clockChoice;
-    @FXML private ChoiceBox<SerialPort> serialChoice;
+    @FXML private ChoiceBox<IHardwareCommunication> serialChoice;
     @FXML private CheckBox measuringCheck;
 
     @FXML private CheckBox regulatorsEnableChoice;
@@ -102,7 +107,7 @@ public class MainWindowController implements Initializable {
             }
             @Override
             protected String computeValue() {
-                return "Temperature: "+hardware.getColorSensor().getReadingTemperature()+" degC";
+                return "Temperature: "+String.format("%.2f",hardware.getColorSensor().getReadingTemperature())+" degC";
             }
         });
         hardware.getColorSensor().colorProperty().addListener((observable, oldValue, newValue) -> {
@@ -158,30 +163,45 @@ public class MainWindowController implements Initializable {
         colorReadingController.readingProperty().bind(hardware.getColorSensor().colorProperty());
         colorReadingController.multiplierProperty().bindBidirectional(hardware.getColorSensor().colorReadingMultiplierProperty());
 
-        pwmSettingRController.setPwm(hardware.getDrivers().get(0));
-        pwmSettingGController.setPwm(hardware.getDrivers().get(1));
-        pwmSettingBController.setPwm(hardware.getDrivers().get(2));
-        pwmSettingWController.setPwm(hardware.getDrivers().get(3));
+        pwmSettingRController.setPwm(hardware.getDrivers().stream().filter(driver->driver.getColor()
+                .equals(new ColorLedXYZ(Color.RED)  )).findFirst().orElse(null));
+        pwmSettingGController.setPwm(hardware.getDrivers().stream().filter(driver->driver.getColor()
+                .equals(new ColorLedXYZ(Color.GREEN))).findFirst().orElse(null));
+        pwmSettingBController.setPwm(hardware.getDrivers().stream().filter(driver->driver.getColor()
+                .equals(new ColorLedXYZ(Color.BLUE) )).findFirst().orElse(null));
+        pwmSettingWController.setPwm(hardware.getDrivers().stream().filter(driver->driver.getColor()
+                .equals(new ColorLedXYZ(Color.WHITE))).findFirst().orElse(null));
+        pwmSettingMController.setPwm(hardware.getDrivers().stream().filter(driver->driver.getColor()
+                .equals(new ColorLedXYZ(Color.BLACK))).findFirst().orElse(null));
 
-        serialChoice.setConverter(new StringConverter<SerialPort>() {
+        serialChoice.setConverter(new StringConverter<IHardwareCommunication>() {
             @Override
-            public String toString(SerialPort object) {
-                return object.getPortName();
+            public String toString(IHardwareCommunication object) {
+                return object.getInterfaceName();
             }
 
             @Override
-            public SerialPort fromString(String string) {
-                throw new RuntimeException("One shall not make serial ports here with the name of " + string);
+            public IHardwareCommunication fromString(String string) {
+                throw new RuntimeException("One shall not make communication thingies here with the name of " + string);
             }
         });
-        serialChoice.setOnMouseEntered(event -> SerialPortProperty.updatePorts(serialChoice.getItems()));
-        serialChoice.valueProperty().bindBidirectional(hardware.portProperty());
+        IHardwareCommunication.suppliers.add(()->serialChoice.getSelectionModel().getSelectedItem()==null?
+                emptyList():singletonList(serialChoice.getSelectionModel().getSelectedItem()));
+        serialChoice.setOnMouseEntered(event -> IHardwareCommunication.update(serialChoice.getItems()));
+        serialChoice.valueProperty().bindBidirectional(hardware.communicationProperty());
+        serialChoice.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if(oldValue!=null){
+                oldValue.close();
+            }
+            if(newValue!=null){
+                newValue.open();
+            }
+        });
 
         hardware.getColorSensor().measureProperty().addListener((observable, oldValue, newValue) ->
                 measuringCheck.setSelected(newValue));
-        measuringCheck.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            hardware.getColorSensor().setMeasureMode(newValue);
-        });
+        measuringCheck.selectedProperty().addListener((observable, oldValue, newValue) ->
+                hardware.getColorSensor().setMeasureMode(newValue));
 
         gainChoice.getItems().setAll(ColorSensor.IntegrationGain.values());
         gainChoice.valueProperty().bindBidirectional(hardware.getColorSensor().gainProperty());

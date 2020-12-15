@@ -67,7 +67,7 @@ public class ColorErrorController implements Initializable {
             }
             @Override
             protected double computeValue() {
-                return Math.abs(ErrorX.get())+Math.abs(ErrorY.get())+Math.abs(ErrorZ.get());
+                return (Math.abs(ErrorX.get())+Math.abs(ErrorY.get())+Math.abs(ErrorZ.get()))/3D;
             }
         });
         ReadingTextField.textProperty().bind(ErrorSum.asString());

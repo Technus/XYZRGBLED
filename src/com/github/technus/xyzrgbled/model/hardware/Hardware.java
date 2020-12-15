@@ -5,19 +5,25 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
-import jssc.SerialPort;
 
 public class Hardware {
-    private final SerialPortProperty port=new SerialPortProperty();
+    private final SimpleObjectProperty<IHardwareCommunication> communication =new SimpleObjectProperty<>(new SerialPortProperty());
     private final SimpleObjectProperty<ColorSensor> colorSensor=new SimpleObjectProperty<>(new ColorSensor(this));
     private final ObservableList<PulseWidthModulationController> drivers= FXCollections.observableArrayList();
 
-    public Hardware() {
-        drivers.addAll(
-                new PulseWidthModulationController(this,4,new ColorLedXYZ(Color.RED)),
-                new PulseWidthModulationController(this,6,new ColorLedXYZ(Color.GREEN)),
-                new PulseWidthModulationController(this,7,new ColorLedXYZ(Color.BLUE)),
-                new PulseWidthModulationController(this,5,new ColorLedXYZ(Color.WHITE)));
+    public static Hardware create(){
+        return new Hardware();
+    }
+
+    public static Hardware createWithDrivers(){
+        Hardware hardware = new Hardware();
+        hardware.getDrivers().addAll(
+                new PulseWidthModulationController(hardware,8,new ColorLedXYZ(Color.BLACK)),
+                new PulseWidthModulationController(hardware,4,new ColorLedXYZ(Color.RED)  ),
+                new PulseWidthModulationController(hardware,6,new ColorLedXYZ(Color.GREEN)),
+                new PulseWidthModulationController(hardware,7,new ColorLedXYZ(Color.BLUE) ),
+                new PulseWidthModulationController(hardware,5,new ColorLedXYZ(Color.WHITE)));
+        return hardware;
     }
 
     public ColorSensor getColorSensor() {
@@ -36,15 +42,15 @@ public class Hardware {
         return drivers;
     }
 
-    public SerialPort getPort() {
-        return port.get();
+    public IHardwareCommunication getCommunication() {
+        return communication.get();
     }
 
-    public SerialPortProperty portProperty() {
-        return port;
+    public SimpleObjectProperty<IHardwareCommunication> communicationProperty() {
+        return communication;
     }
 
-    public void setPort(SerialPort port) {
-        this.port.set(port);
+    public void setCommunication(IHardwareCommunication communication) {
+        this.communication.set(communication);
     }
 }

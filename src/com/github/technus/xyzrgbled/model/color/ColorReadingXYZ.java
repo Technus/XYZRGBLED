@@ -8,19 +8,24 @@ import javafx.scene.paint.Color;
 
 public class ColorReadingXYZ {
     private final double x,y,z;
+    private final double xRaw,yRaw,zRaw;
     private final boolean tooHigh,tooLow;
     private final SimpleDoubleProperty multiplier=new SimpleDoubleProperty(1D);
     private final ReadOnlyObjectWrapper<Color> color=new ReadOnlyObjectWrapper<>();
 
     public ColorReadingXYZ(){
         x=y=z=0;
+        xRaw=yRaw=zRaw=0;
         tooHigh=tooLow=false;
     }
 
-    public ColorReadingXYZ(double x, double y, double z, double mult,boolean tooHigh,boolean tooLow) {
+    public ColorReadingXYZ(double x, double y, double z,double xRaw, double yRaw, double zRaw, double mult,boolean tooHigh,boolean tooLow) {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.xRaw = xRaw;
+        this.yRaw = yRaw;
+        this.zRaw = zRaw;
         this.tooHigh = tooHigh;
         this.tooLow = tooLow;
         color.bind(new ObjectBinding<Color>() {
@@ -77,6 +82,18 @@ public class ColorReadingXYZ {
 
     public double getZ() {
         return z;
+    }
+
+    public double getRawX() {
+        return xRaw;
+    }
+
+    public double getRawY() {
+        return yRaw;
+    }
+
+    public double getRawZ() {
+        return zRaw;
     }
 
     public boolean isTooHigh() {

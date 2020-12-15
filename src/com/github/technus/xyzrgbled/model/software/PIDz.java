@@ -14,7 +14,7 @@ import java.util.Random;
 /**
  * Created by danie_000 on 01.11.2017.
  */
-public class PIDz {
+public class PIDz implements IRegulator {
     private final SimpleDoubleProperty regulatorGain=new SimpleDoubleProperty(.0001);
     private final SimpleDoubleProperty integrationTime=new SimpleDoubleProperty(.1);
     private final SimpleDoubleProperty differentiationTime=new SimpleDoubleProperty(0);
@@ -80,8 +80,8 @@ public class PIDz {
 
     private boolean mustIncrease(){
         if(pwm.get().getBroadBand() && setting.get()<max.get()-1){
-            for (PIDz regulator : control.getRegulators()) {
-                if(!regulator.pwm.get().getBroadBand() && regulator.setting.get()==regulator.min.get()){
+            for (IRegulator regulator : control.getRegulators()) {
+                if(!regulator.getPwm().getBroadBand() && regulator.getSetting()==regulator.getMin()){
                     return false;
                 }
             }
@@ -91,8 +91,8 @@ public class PIDz {
     }
     private boolean mustDecrease(){
         if(pwm.get().getBroadBand() && setting.get()>min.get()+1){
-            for (PIDz regulator : control.getRegulators()) {
-                if(!regulator.pwm.get().getBroadBand() && regulator.setting.get()==regulator.min.get()){
+            for (IRegulator regulator : control.getRegulators()) {
+                if(!regulator.getPwm().getBroadBand() && regulator.getSetting()==regulator.getMin()){
                     return true;
                 }
             }
@@ -178,28 +178,12 @@ public class PIDz {
         this.discreteTimeStep.set(discreteTimeStep);
     }
 
-    public double getMax() {
-        return max.get();
-    }
-
     public SimpleDoubleProperty maxProperty() {
         return max;
     }
 
-    public void setMax(double max) {
-        this.max.set(max);
-    }
-
-    public double getMin() {
-        return min.get();
-    }
-
     public SimpleDoubleProperty minProperty() {
         return min;
-    }
-
-    public void setMin(double min) {
-        this.min.set(min);
     }
 
     public double getTransferCoupling() {
@@ -250,51 +234,23 @@ public class PIDz {
         this.enableInverseTransferCoupling.set(enableInverseTransferCoupling);
     }
 
-    public PulseWidthModulationController getPwm() {
-        return pwm.get();
-    }
-
     public SimpleObjectProperty<PulseWidthModulationController> pwmProperty() {
         return pwm;
-    }
-
-    public void setPwm(PulseWidthModulationController pwm) {
-        this.pwm.set(pwm);
-    }
-
-    public ColorReadingXYZ getReading() {
-        return reading.get();
     }
 
     public SimpleObjectProperty<ColorReadingXYZ> readingProperty() {
         return reading;
     }
 
-    public void setReading(ColorReadingXYZ reading) {
-        this.reading.set(reading);
-    }
-
-    public boolean isEnable() {
-        return enable.get();
-    }
-
     public SimpleBooleanProperty enableProperty() {
         return enable;
-    }
-
-    public void setEnable(boolean enable) {
-        this.enable.set(enable);
-    }
-
-    public ColorChooserXYZ getRequest() {
-        return request.get();
     }
 
     public SimpleObjectProperty<ColorChooserXYZ> requestProperty() {
         return request;
     }
 
-    public void setRequest(ColorChooserXYZ request) {
-        this.request.set(request);
+    public SimpleDoubleProperty settingProperty() {
+        return setting;
     }
 }

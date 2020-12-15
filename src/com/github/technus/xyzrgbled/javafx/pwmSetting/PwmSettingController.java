@@ -2,30 +2,36 @@ package com.github.technus.xyzrgbled.javafx.pwmSetting;
 
 import com.github.technus.xyzrgbled.model.color.ColorLedXYZ;
 import com.github.technus.xyzrgbled.model.hardware.PulseWidthModulationController;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 import java.net.URL;
+import java.util.Random;
 import java.util.ResourceBundle;
 
 public class PwmSettingController implements Initializable {
+    @FXML private CheckBox randomize;
     @FXML private Slider settingSlider;
     @FXML private Spinner<Integer> settingSpinner;
     @FXML private Circle settingCircle;
 
     private final SimpleObjectProperty<PulseWidthModulationController> pwm=new SimpleObjectProperty<>();
 
-    private final ChangeListener<ColorLedXYZ>  colorListener= (observable, oldValue, newValue) -> {
+    private final ChangeListener<ColorLedXYZ> colorListener= (observable, oldValue, newValue) -> {
         if(newValue!=null){
             settingCircle.setFill(pwm.get().isEnable()?newValue.getColor(): Color.BLACK);
         }
@@ -36,6 +42,14 @@ public class PwmSettingController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        Timeline fiveSecondsWonder = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            if(randomize.isSelected()){
+                settingSlider.setValue((new Random().nextDouble()*(settingSlider.getMax()-settingSlider.getMin()))+settingSlider.getMin());
+            }
+        }));
+        fiveSecondsWonder.setCycleCount(Timeline.INDEFINITE);
+        fiveSecondsWonder.play();
+
         settingSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(PulseWidthModulationController.MIN_VALUE,PulseWidthModulationController.MAX_VALUE,0));
         settingSpinner.getValueFactory().setConverter(new StringConverter<Integer>() {
             @Override

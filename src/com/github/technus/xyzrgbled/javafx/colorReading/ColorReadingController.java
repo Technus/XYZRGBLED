@@ -61,6 +61,10 @@ public class ColorReadingController implements Initializable {
         });
         multiplierSpinner.getValueFactory().valueProperty().bindBidirectional(bindingOfValue);
 
+        ReadingTextFieldX.setTooltip(new Tooltip());
+        ReadingTextFieldY.setTooltip(new Tooltip());
+        ReadingTextFieldZ.setTooltip(new Tooltip());
+
         reading.addListener((observable, oldValue, newValue) -> {
             if(oldValue!=null) {
                 oldValue.colorProperty().removeListener(listener);
@@ -70,8 +74,11 @@ public class ColorReadingController implements Initializable {
                 colorBox.setFill(newValue.getColor());
                 colorPicker.setValue(newValue.getColor());
                 ReadingTextFieldX.setText(""+newValue.getX());
+                ReadingTextFieldX.getTooltip().setText(newValue.getRawX()+"");
                 ReadingTextFieldY.setText(""+newValue.getY());
+                ReadingTextFieldY.getTooltip().setText(newValue.getRawY()+"");
                 ReadingTextFieldZ.setText(""+newValue.getZ());
+                ReadingTextFieldZ.getTooltip().setText(newValue.getRawZ()+"");
                 lowCheckbox.setSelected(newValue.isTooLow());
                 highCheckbox.setSelected(newValue.isTooHigh());
             }

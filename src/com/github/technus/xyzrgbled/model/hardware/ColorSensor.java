@@ -5,8 +5,10 @@ import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.*;
+import javafx.beans.value.ChangeListener;
 
 import java.util.HashMap;
+import java.util.function.Consumer;
 
 public class ColorSensor {
     private static final int SATURATED=32768*3/4,TOOLOW= 32768/3;
@@ -33,6 +35,7 @@ public class ColorSensor {
     private final ReadOnlyDoubleWrapper readingX=new ReadOnlyDoubleWrapper();
     private final ReadOnlyDoubleWrapper readingY=new ReadOnlyDoubleWrapper();
     private final ReadOnlyDoubleWrapper readingZ=new ReadOnlyDoubleWrapper();
+    private final ReadOnlyDoubleWrapper readingMax=new ReadOnlyDoubleWrapper();
     private final ReadOnlyBooleanWrapper tooHigh=new ReadOnlyBooleanWrapper();
     private final ReadOnlyBooleanWrapper tooLow=new ReadOnlyBooleanWrapper();
 
@@ -133,9 +136,38 @@ public class ColorSensor {
         }
     }
 
+    private static final double X_FSR = 1773.255;
+    private static final double Y_FSR = 1909.659;
+    private static final double Z_FSR = 1025.548;
+
+    private static final double[][] ColorSensorMatrix={
+            {152.089005689240 , -24.022390350302 , -8.733728229283},//xk1,xk2,xk3
+            {7.492097167082 , 109.510079047324 , -2.852947759172},//yk1,yk2,yk3
+            {-6.584393209711 , 7.005957061958 , 96.654746041847}};//zk1,zk2,zk3
+
+    private static final double[][] CalibrationMatrix={
+            {1,0,0},//xk1,xk2,xk3
+            {0,1,0},//yk1,yk2,yk3
+            {0,0,1}};//zk1,zk2,zk3
+    private static final double[][] EquivalentIrradianceMatrix={
+            {1773.255,0,0},//xk1,xk2,xk3
+            {0,1909.659,0},//yk1,yk2,yk3
+            {0,0,1025.548}};//zk1,zk2,zk3
+
+    private ColorReadingXYZ getReading(double[][] matrix){
+        double[] readings={readingX.get()*actualGain.get(),readingY.get()*actualGain.get(),readingZ.get()*actualGain.get()};
+        return new ColorReadingXYZ(
+                readings[0]*matrix[0][0]+readings[1]*matrix[0][1]+readings[2]*matrix[0][2],
+                readings[0]*matrix[1][0]+readings[1]*matrix[1][1]+readings[2]*matrix[1][2],
+                readings[0]*matrix[2][0]+readings[1]*matrix[2][1]+readings[2]*matrix[2][2],
+                readingX.get(),readingY.get(),readingZ.get(),
+                colorReadingMultiplier.get(),
+                tooHigh.get(),tooLow.get());
+    }
+
     public ColorSensor(Hardware hardware) {
         this.hardware=hardware;
-        hardware.portProperty().openedProperty().addListener((observable, oldValue, newValue) -> {
+        ChangeListener<Boolean> openListener=(observable, oldValue, newValue) -> {
             if (newValue) {
                 setMeasureMode(false);
                 if(writeSettingsOnConnection.get()){
@@ -148,19 +180,13 @@ public class ColorSensor {
                     reading=true;
                 }
             }
-        });
-
-        hardware.portProperty().getEventHandlers().add(s -> Platform.runLater(()->{
+        };
+        Consumer<String> eventListener=s -> Platform.runLater(()->{
             try {
                 String[] data = s.split(":");
                 if (data[0].equals("T")) {
                     //update color after getting all values
-                    color.set(new ColorReadingXYZ(
-                            readingX.get()*actualGain.get(),
-                            readingY.get()*actualGain.get(),
-                            readingZ.get()*actualGain.get(),
-                            colorReadingMultiplier.get(),
-                            tooHigh.get(),tooLow.get()));
+                    color.set(getReading(ColorSensorMatrix));
 
                     measure.set(true);
                     readingTemperature.set(Double.parseDouble(data[1]));
@@ -235,10 +261,22 @@ public class ColorSensor {
                     setMeasureMode(true);
                 }
             } catch (Exception ignored) {}
-        }));
+        });
+        hardware.communicationProperty().addListener((observable, oldValue, newValue) -> {
+            if(oldValue!=null){
+                oldValue.openedProperty().removeListener(openListener);
+                oldValue.getEventHandlers().remove(eventListener);
+            }
+            if(newValue!=null){
+                openListener.changed(newValue.openedProperty(),null,newValue.openedProperty().get());
+                newValue.openedProperty().addListener(openListener);
+                newValue.getEventHandlers().add(eventListener);
+            }
+        });
+
 
         gain.addListener((observable, oldValue, newValue) -> {
-            if (hardware.portProperty().isOpened() && !measure.get()) {
+            if (hardware.getCommunication().isOpened() && !measure.get()) {
                 setMeasureMode(false);
                 updateGainCommand();
                 setMeasureMode(true);
@@ -246,7 +284,7 @@ public class ColorSensor {
         });
 
         time.addListener((observable, oldValue, newValue) -> {
-            if (hardware.portProperty().isOpened() && !measure.get()) {
+            if (hardware.getCommunication().isOpened() && !measure.get()) {
                 setMeasureMode(false);
                 updateTimeCommand();
                 setMeasureMode(true);
@@ -254,7 +292,7 @@ public class ColorSensor {
         });
 
         divider.addListener((observable, oldValue, newValue) -> {
-            if (hardware.portProperty().isOpened() && !measure.get()) {
+            if (hardware.getCommunication().isOpened() && !measure.get()) {
                 setMeasureMode(false);
                 updateDividerCommand();
                 setMeasureMode(true);
@@ -262,7 +300,7 @@ public class ColorSensor {
         });
 
         clock.addListener((observable, oldValue, newValue) -> {
-            if (hardware.portProperty().isOpened() && !measure.get()) {
+            if (hardware.getCommunication().isOpened() && !measure.get()) {
                 setMeasureMode(false);
                 updateClockCommand();
                 setMeasureMode(true);
@@ -299,11 +337,12 @@ public class ColorSensor {
                 bind(gain);
                 bind(time);
                 bind(divider);
+                bind(clock);
             }
             @Override
             protected double computeValue() {
-                if(gain.get()!=null && time.get()!=null && divider.get()!=null){
-                    return ((double) divider.get().div)/gain.get().gain/time.get().time;
+                if(gain.get()!=null && time.get()!=null && divider.get()!=null && clock.get()!=null){
+                    return ((double) divider.get().div)/gain.get().gain/time.get().time*clock.get().freq/InternalClockFrequency.Clock1024MHz.freq;
                 }
                 return 0;
             }
@@ -312,27 +351,27 @@ public class ColorSensor {
 
     public void setMeasureMode(boolean measure) {
         if (measure) {
-            hardware.portProperty().queueDataToSend(new byte[]{(byte) 0b11110101}, 100);
+            hardware.getCommunication().queueDataToSend(new byte[]{(byte) 0b11110101}, 100);
         } else {
-            hardware.portProperty().queueDataToSend(new byte[]{(byte) 0b11110100}, 1000);
+            hardware.getCommunication().queueDataToSend(new byte[]{(byte) 0b11110100}, 1000);
         }
         this.measure.set(measure);
     }
 
     private void updateGainCommand() {
-        hardware.portProperty().queueDataToSend(new byte[]{(byte)(0b11000000|gain.get().ordinal())});
+        hardware.getCommunication().queueDataToSend(new byte[]{(byte)(0b11000000|gain.get().ordinal())});
     }
 
     private void updateTimeCommand() {
-        hardware.portProperty().queueDataToSend(new byte[]{(byte) (0b11010000 | time.get().ordinal())});
+        hardware.getCommunication().queueDataToSend(new byte[]{(byte) (0b11010000 | time.get().ordinal())});
     }
 
     private void updateClockCommand() {
-        hardware.portProperty().queueDataToSend(new byte[]{(byte) (0b11110000 | clock.get().ordinal())});
+        hardware.getCommunication().queueDataToSend(new byte[]{(byte) (0b11110000 | clock.get().ordinal())});
     }
 
     private void updateDividerCommand() {
-        hardware.portProperty().queueDataToSend(new byte[]{(byte) (0b11100000 | divider.get().ordinal())});
+        hardware.getCommunication().queueDataToSend(new byte[]{(byte) (0b11100000 | divider.get().ordinal())});
     }
 
     public IntegrationGain getGain() {

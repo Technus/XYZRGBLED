@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Slider?>
-<?import javafx.scene.control.Spinner?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Circle?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 
-<VBox spacing="4.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.technus.xyzrgbled.javafx.pwmSetting.PwmSettingController">
+<VBox spacing="4.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.technus.xyzrgbled.javafx.pwmSetting.PwmSettingController">
    <children>
       <HBox spacing="4.0">
           <BorderPane>
@@ -22,6 +18,11 @@
               </center>
           </BorderPane>
           <Spinner fx:id="settingSpinner" editable="true" maxWidth="1.7976931348623157E308" prefWidth="176.0" HBox.hgrow="ALWAYS" />
+         <CheckBox fx:id="randomize" maxHeight="1.7976931348623157E308" mnemonicParsing="false">
+            <HBox.margin>
+               <Insets bottom="2.0" left="-1.0" right="3.0" top="2.0" />
+            </HBox.margin>
+         </CheckBox>
       </HBox>
       <Slider fx:id="settingSlider" showTickMarks="true">
          <padding>

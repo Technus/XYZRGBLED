@@ -3,6 +3,7 @@ package com.github.technus.xyzrgbled.model.hardware;
 import com.github.technus.xyzrgbled.model.color.ColorLedXYZ;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.*;
+import javafx.beans.value.ChangeListener;
 
 public class PulseWidthModulationController {
     public static final int MAX_VALUE = 4095, MIN_VALUE = 0;
@@ -17,9 +18,16 @@ public class PulseWidthModulationController {
 
     public PulseWidthModulationController(Hardware hardware, int channel, ColorLedXYZ color) {
         this.hardware = hardware;
-        this.hardware.portProperty().openedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                updateSetting();
+        ChangeListener<Boolean> openListener = (observable1, oldValue1, newValue1) -> updateSetting();
+        hardware.communicationProperty().addListener((observable, oldValue, newValue) -> {
+            if(oldValue!=null){
+                oldValue.openedProperty().removeListener(openListener);
+            }
+            if(newValue!=null){
+                if(newValue.isOpened()){
+                    updateSetting();
+                }
+                newValue.openedProperty().addListener(openListener);
             }
         });
 
@@ -60,8 +68,8 @@ public class PulseWidthModulationController {
 
     private void updateSetting() {
         if(enable.get()) {
-            if (hardware.portProperty().isOpened()) {
-                hardware.portProperty().queueDataToSend(new byte[]{
+            if (hardware.getCommunication().isOpened()) {
+                hardware.getCommunication().queueDataToSend(new byte[]{
                         (byte) (0x40 | (setting.get() & 0x3F)),
                         (byte) (0x80 | ((setting.get() >>> 6) & 0x3F)),
                         (byte) channel.get()

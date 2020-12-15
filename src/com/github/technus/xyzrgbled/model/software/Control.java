@@ -8,11 +8,12 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.paint.Color;
 
 public class Control {
     private final SimpleBooleanProperty enable=new SimpleBooleanProperty();
     private final SimpleObjectProperty<ColorChooserXYZ> request =new SimpleObjectProperty<>();
-    private final ObservableList<PIDz> regulators= FXCollections.observableArrayList();
+    private final ObservableList<IRegulator> regulators= FXCollections.observableArrayList();
 
     private final SimpleDoubleProperty regulatorGain=new SimpleDoubleProperty(.01D);
     private final SimpleDoubleProperty regulatorIntegrationTime=new SimpleDoubleProperty(.01);
@@ -20,29 +21,47 @@ public class Control {
     private final SimpleBooleanProperty enableTransferFunctionRemoval=new SimpleBooleanProperty(true);
     private final SimpleBooleanProperty enableOffsetRemoval=new SimpleBooleanProperty(true);
 
-    public Control(Hardware hardware) {
-        hardware.getDrivers().forEach(pulseWidthModulationController -> {
-            PIDz pidz=new PIDz(pulseWidthModulationController,Control.this);
+    public static Control getPIDzControl(Hardware hardware){
+        Control control=new Control();
+        hardware.getDrivers().filtered(pulseWidthModulationController ->
+                !pulseWidthModulationController.getColor().getColor().equals(Color.BLACK)).forEach(pulseWidthModulationController -> {
+            PIDz pidz=new PIDz(pulseWidthModulationController,control);
             pidz.setMax(PulseWidthModulationController.MAX_VALUE);
             pidz.setMin(PulseWidthModulationController.MIN_VALUE);
-            pidz.enableProperty().bind(enable);
-            pidz.regulatorGainProperty().bind(regulatorGain);
-            pidz.integrationTimeProperty().bind(regulatorIntegrationTime);
-            pidz.differentiationTimeProperty().bind(regulatorDifferentiationTime);
-            pidz.enableInverseTransferCouplingProperty().bind(enableTransferFunctionRemoval);
-            pidz.enableOffsetProperty().bind(enableOffsetRemoval);
+            pidz.enableProperty().bind(control.enable);
+            pidz.regulatorGainProperty().bind(control.regulatorGain);
+            pidz.integrationTimeProperty().bind(control.regulatorIntegrationTime);
+            pidz.differentiationTimeProperty().bind(control.regulatorDifferentiationTime);
+            pidz.enableInverseTransferCouplingProperty().bind(control.enableTransferFunctionRemoval);
+            pidz.enableOffsetProperty().bind(control.enableOffsetRemoval);
             hardware.getColorSensor().colorProperty().addListener((observable, oldValue, newValue) -> {
                 if(newValue!=null) {
                     pidz.readingProperty().set(newValue);
                 }
             });
-            pidz.requestProperty().bind(request);
-            regulators.add(pidz);
+            pidz.requestProperty().bind(control.request);
+            control.regulators.add(pidz);
         });
+        return control;
     }
 
-    public ColorChooserXYZ getRequest() {
-        return request.get();
+    public static Control getNeuralControl(Hardware hardware){
+        Control control=new Control();
+        hardware.getDrivers().filtered(pulseWidthModulationController ->
+                !pulseWidthModulationController.getColor().getColor().equals(Color.BLACK)).forEach(pulseWidthModulationController -> {
+            Neural neural=new Neural();
+            hardware.getColorSensor().colorProperty().addListener((observable, oldValue, newValue) -> {
+                if(newValue!=null) {
+                    neural.readingProperty().set(newValue);
+                }
+            });
+            neural.requestProperty().bind(control.request);
+            control.regulators.add(neural);
+        });
+        return control;
+    }
+
+    private Control() {
     }
 
     public SimpleObjectProperty<ColorChooserXYZ> requestProperty() {
@@ -53,7 +72,7 @@ public class Control {
         this.request.set(request);
     }
 
-    public ObservableList<PIDz> getRegulators() {
+    public ObservableList<IRegulator> getRegulators() {
         return regulators;
     }
 
